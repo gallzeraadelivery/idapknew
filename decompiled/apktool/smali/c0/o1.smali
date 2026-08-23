@@ -626,7 +626,7 @@
 
     .line 149
     .line 150
-    const-string v0, "#!/system/bin/sh\n\n# ByeDentity Addon\n# Generated properties: "
+    const-string v0, "#!/system/bin/sh\n\n# GDnew Addon\n# Generated properties: "
 
     .line 151
     .line 152

@@ -8,10 +8,10 @@ import g1.h0;
 public abstract class a {
 
     /* JADX INFO: renamed from: a, reason: collision with root package name */
-    public static final long f8358a = h0.c(Color.parseColor("#0F0F10"));
+    public static final long f8358a = h0.c(Color.parseColor("#0B1020"));
 
     /* JADX INFO: renamed from: b, reason: collision with root package name */
-    public static final long f8359b = h0.c(Color.parseColor("#1F1F22"));
+    public static final long f8359b = h0.c(Color.parseColor("#141B34"));
 
     /* JADX INFO: renamed from: c, reason: collision with root package name */
     public static final long f8360c;
@@ -32,12 +32,12 @@ public abstract class a {
     public static final long f8365h;
 
     static {
-        h0.c(Color.parseColor("#242427"));
-        f8360c = h0.c(Color.parseColor("#2A2D32"));
+        h0.c(Color.parseColor("#192344"));
+        f8360c = h0.c(Color.parseColor("#202B4F"));
         f8361d = h0.c(Color.parseColor("#F5F5F7"));
-        f8362e = h0.c(Color.parseColor("#4EE39C"));
+        f8362e = h0.c(Color.parseColor("#00D4FF"));
         f8363f = h0.c(Color.parseColor("#F5F5F7"));
-        f8364g = h0.c(Color.parseColor("#9EA1A8"));
-        f8365h = h0.c(Color.parseColor("#2F3137"));
+        f8364g = h0.c(Color.parseColor("#A9B6D3"));
+        f8365h = h0.c(Color.parseColor("#29365F"));
     }
 }

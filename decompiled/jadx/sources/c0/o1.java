@@ -184,7 +184,7 @@ public final class o1 extends q5.i implements w5.e {
                             sb.append("\n");
                         }
                     }
-                    StringBuilder sb2 = new StringBuilder("#!/system/bin/sh\n\n# ByeDentity Addon\n# Generated properties: ");
+                    StringBuilder sb2 = new StringBuilder("#!/system/bin/sh\n\n# GDnew Addon\n# Generated properties: ");
                     sb2.append(listQ.size());
                     sb2.append("\n\nwhile [ \"$(getprop sys.boot_completed)\" != \"1\" ]; do sleep 1; done\n\n");
                     if (sb.length() > 0) {

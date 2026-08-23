@@ -1,6 +1,8 @@
-# ByeDentity APK — código descompilado
+# GDnew — código descompilado
 
 Conteúdo recuperado do APK `byedentity.apk` para fins de análise e manutenção.
+
+Identidade visual atualizada para **GDnew**, com uma nova paleta azul-violeta, destaque ciano e ícone próprio.
 
 ## Informações do APK
 
@@ -19,13 +21,12 @@ Conteúdo recuperado do APK `byedentity.apk` para fins de análise e manutençã
 
 Código descompilado não equivale ao projeto-fonte original: nomes, comentários e partes da estrutura podem ter sido perdidos ou ofuscados. A saída do APKTool é a mais adequada para reconstrução; a saída do JADX facilita a leitura e análise.
 
-O APK reconstruído precisa ser assinado antes da instalação. A recompilação não foi validada neste ambiente porque não havia um Java Runtime instalado.
+O APK reconstruído precisa ser assinado antes da instalação. A recompilação da identidade GDnew foi validada com o Java Runtime incluído no Android Studio e APKTool 3.0.3.
 
 ## Reconstrução
 
 Com Java e APKTool instalados:
 
 ```sh
-apktool b decompiled/apktool -o build/byedentity-unsigned.apk
+apktool b decompiled/apktool -o build/GDnew-unsigned.apk
 ```
-

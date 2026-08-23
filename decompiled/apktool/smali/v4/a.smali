@@ -26,7 +26,7 @@
     .locals 3
 
     .line 1
-    const-string v0, "#0F0F10"
+    const-string v0, "#0B1020"
 
     .line 2
     .line 3
@@ -50,7 +50,7 @@
 
     .line 12
     .line 13
-    const-string v0, "#1F1F22"
+    const-string v0, "#141B34"
 
     .line 14
     .line 15
@@ -74,7 +74,7 @@
 
     .line 24
     .line 25
-    const-string v0, "#242427"
+    const-string v0, "#192344"
 
     .line 26
     .line 27
@@ -91,7 +91,7 @@
     .line 32
     .line 33
     .line 34
-    const-string v0, "#2A2D32"
+    const-string v0, "#202B4F"
 
     .line 35
     .line 36
@@ -139,7 +139,7 @@
 
     .line 57
     .line 58
-    const-string v1, "#4EE39C"
+    const-string v1, "#00D4FF"
 
     .line 59
     .line 60
@@ -183,7 +183,7 @@
 
     .line 79
     .line 80
-    const-string v0, "#9EA1A8"
+    const-string v0, "#A9B6D3"
 
     .line 81
     .line 82
@@ -207,7 +207,7 @@
 
     .line 91
     .line 92
-    const-string v0, "#2F3137"
+    const-string v0, "#29365F"
 
     .line 93
     .line 94

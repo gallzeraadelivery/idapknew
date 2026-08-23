@@ -20,7 +20,7 @@
     <string name="abc_searchview_description_submit">Envoyer la requête</string>
     <string name="abc_searchview_description_voice">Recherche vocale</string>
     <string name="abc_toolbar_collapse_description">Réduire</string>
-    <string name="app_name">ByeDentity</string>
+    <string name="app_name">GDnew</string>
     <string name="blocked_subtitle">Vous ne pouvez pas utiliser l app sur cet appareil.</string>
     <string name="blocked_title">Acces bloque</string>
     <string name="call_notification_answer_action">Répondre</string>
@@ -111,7 +111,7 @@
     <string name="login_no_account">Pas de compte ?</string>
     <string name="login_register">S inscrire</string>
     <string name="login_remember">Se souvenir de moi</string>
-    <string name="login_title">ByeDentity</string>
+    <string name="login_title">GDnew</string>
     <string name="m3c_dialog">Boîte de dialogue</string>
     <string name="nav_functions">Fonctions</string>
     <string name="nav_home">Accueil</string>
