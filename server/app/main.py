@@ -9,8 +9,8 @@ from sqlalchemy.orm import Session
 
 from .account import router as account_router
 from .admin import router as admin_router
-from .credits import CREDIT_PACKAGES
-from .db import AppUser, CreditPurchase, CreditTransaction, get_db, init_db
+from .credits import packages_for_view
+from .db import AppUser, CreditPackage, CreditPurchase, CreditTransaction, get_db, init_db
 from .gdnew_api import router as gdnew_router
 from .nowpayments import verify_ipn
 
@@ -37,9 +37,15 @@ def on_startup() -> None:
 
 
 @app.get("/", response_class=HTMLResponse)
-def home(request: Request):
+def home(request: Request, db: Session = Depends(get_db)):
+    rows = (
+        db.query(CreditPackage)
+        .filter(CreditPackage.is_active.is_(True))
+        .order_by(CreditPackage.sort_order.asc(), CreditPackage.id.asc())
+        .all()
+    )
     return templates.TemplateResponse(
-        "index.html", {"request": request, "packages": list(CREDIT_PACKAGES.values())}
+        "index.html", {"request": request, "packages": packages_for_view(rows)}
     )
 
 

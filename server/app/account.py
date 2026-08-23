@@ -7,8 +7,8 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from .config import settings
-from .credits import CREDIT_PACKAGES
-from .db import AppUser, CreditPurchase, CreditTransaction, get_db
+from .credits import packages_for_view
+from .db import AppUser, CreditPackage, CreditPurchase, CreditTransaction, get_db
 from .nowpayments import create_invoice
 from .user_auth import (
     COOKIE,
@@ -152,12 +152,18 @@ def dashboard(
         .limit(30)
         .all()
     )
+    packages = (
+        db.query(CreditPackage)
+        .filter(CreditPackage.is_active.is_(True))
+        .order_by(CreditPackage.sort_order.asc(), CreditPackage.id.asc())
+        .all()
+    )
     return templates.TemplateResponse(
         "account.html",
         {
             "request": request,
             "user": user,
-            "packages": list(CREDIT_PACKAGES.values()),
+            "packages": packages_for_view(packages),
             "purchases": purchases,
             "transactions": transactions,
             "flash": request.query_params.get("ok", ""),
@@ -171,14 +177,14 @@ async def checkout(
     db: Session = Depends(get_db),
     user: AppUser = Depends(current_account),
 ):
-    package = CREDIT_PACKAGES.get(package_id)
-    if package is None:
+    package = db.get(CreditPackage, package_id)
+    if package is None or not package.is_active:
         raise HTTPException(404, "pacote invalido")
     purchase_id = new_purchase_id()
     invoice = await create_invoice(
         order_id=purchase_id,
-        amount=package["price_usd"],
-        description=f"GDnew {package['label']}",
+        amount=package.price_cents / 100,
+        description=f"GDnew {package.label}",
         success_url=f"{settings.public_url}/account?ok=payment",
         cancel_url=f"{settings.public_url}/account",
         ipn_url=f"{settings.public_url}/api/payments/ipn",
@@ -191,8 +197,8 @@ async def checkout(
             id=purchase_id,
             user_id=user.id,
             package_id=package_id,
-            credits=package["credits"],
-            price_usd=f"{package['price_usd']:.2f}",
+            credits=package.credits,
+            price_usd=f"{package.price_cents / 100:.2f}",
             invoice_id=str(invoice.get("id") or ""),
             invoice_url=invoice_url,
         )

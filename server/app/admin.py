@@ -21,7 +21,7 @@ from .auth import (
     verify_password,
 )
 from .config import settings
-from .db import AppSession, AppUser, AdminUser, CreditTransaction, UserDevice, get_db
+from .db import AppSession, AppUser, AdminUser, CreditPackage, CreditTransaction, UserDevice, get_db
 
 ROOT = Path(__file__).resolve().parents[1]
 templates = Jinja2Templates(directory=str(ROOT / "templates"))
@@ -191,6 +191,51 @@ def admin_toggle_user(
     target.is_active = not target.is_active
     db.commit()
     return RedirectResponse("/admin/users?ok=toggled", status_code=303)
+
+
+@router.get("/admin/packages", response_class=HTMLResponse)
+def admin_packages(
+    request: Request,
+    db: Session = Depends(get_db),
+    user: AdminUser = Depends(require_admin_role),
+):
+    rows = db.query(CreditPackage).order_by(CreditPackage.sort_order.asc(), CreditPackage.id.asc()).all()
+    return templates.TemplateResponse(
+        "admin_packages.html",
+        {"request": request, "user": user, "packages": rows, "flash": request.query_params.get("ok", ""), "error": request.query_params.get("e", "")},
+    )
+
+
+@router.post("/admin/packages/{package_id}")
+def admin_update_package(
+    package_id: str,
+    label: str = Form(...),
+    credits: int = Form(...),
+    price_usd: str = Form(...),
+    sort_order: int = Form(0),
+    is_popular: str | None = Form(None),
+    is_active: str | None = Form(None),
+    db: Session = Depends(get_db),
+    _: AdminUser = Depends(require_admin_role),
+):
+    package = db.get(CreditPackage, package_id)
+    if package is None:
+        raise HTTPException(404, "plano nao encontrado")
+    clean_label = label.strip()
+    try:
+        price_cents = round(float(price_usd.replace(",", ".")) * 100)
+    except ValueError:
+        return RedirectResponse("/admin/packages?e=invalid", status_code=303)
+    if not clean_label or len(clean_label) > 80 or credits < 1 or credits > 100000 or price_cents < 50 or price_cents > 10000000 or sort_order < 0 or sort_order > 999:
+        return RedirectResponse("/admin/packages?e=invalid", status_code=303)
+    package.label = clean_label
+    package.credits = credits
+    package.price_cents = price_cents
+    package.sort_order = sort_order
+    package.is_popular = is_popular == "on"
+    package.is_active = is_active == "on"
+    db.commit()
+    return RedirectResponse("/admin/packages?ok=updated", status_code=303)
 
 
 @router.get("/admin/customers", response_class=HTMLResponse)

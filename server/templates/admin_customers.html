@@ -12,6 +12,7 @@
     <nav class="admin-nav">
 
       <a class="active" href="/admin/customers">Clientes</a>
+      {% if user.role == "admin" %}<a href="/admin/packages">Planos</a>{% endif %}
       {% if user.role == "admin" %}<a href="/admin/users">Usuários</a>{% endif %}
       <span class="muted">{{ user.username }}</span>
       <form method="post" action="/admin/logout"><button class="ghost" type="submit">Sair</button></form>

@@ -103,6 +103,21 @@ class CreditPurchase(Base):
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
+class CreditPackage(Base):
+    __tablename__ = "credit_packages"
+
+    id: Mapped[str] = mapped_column(String(24), primary_key=True)
+    label: Mapped[str] = mapped_column(String(80))
+    credits: Mapped[int] = mapped_column(Integer)
+    price_cents: Mapped[int] = mapped_column(Integer)
+    is_popular: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+
 engine = create_engine(settings.database_url, pool_pre_ping=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
@@ -118,5 +133,7 @@ def get_db():
 def init_db() -> None:
     Base.metadata.create_all(engine)
     from .auth import bootstrap_admin
+    from .credits import bootstrap_packages
 
     bootstrap_admin()
+    bootstrap_packages()
