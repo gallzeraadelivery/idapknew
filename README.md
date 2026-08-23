@@ -9,7 +9,7 @@ A versão 3.3.0 utiliza exclusivamente contas com login, senha e carteira de cr�
 ## Informações do APK
 
 - Pacote: `com.byedentity`
-- Versão atual: `3.3.0` (`versionCode` 330)
+- Versão atual: `3.4.0` (`versionCode` 340)
 - Versão do APK original: `3.0.1` (`versionCode` 301)
 - Android mínimo: API 30
 - Android alvo: API 36
