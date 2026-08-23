@@ -4,6 +4,7 @@ tools/
 build/
 dist/
 signing/
+.secrets/
 *.apk
 *.apks
 *.aab
