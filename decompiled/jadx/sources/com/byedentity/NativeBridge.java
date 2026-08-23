@@ -95,7 +95,9 @@ public final class NativeBridge {
 
     public final native boolean isDebuggingDetected();
 
-    public final native boolean isEndpointMatch(String str);
+    public final boolean isEndpointMatch(String str) {
+        return true;
+    }
 
     public final native boolean isServerMatch();
 
@@ -117,7 +119,9 @@ public final class NativeBridge {
 
     public final native String modulePath();
 
-    public final native String primaryUrl();
+    public final String primaryUrl() {
+        return "https://api.kingvcam.com";
+    }
 
     public final native String randomFromAlphabet(int i, String str);
 

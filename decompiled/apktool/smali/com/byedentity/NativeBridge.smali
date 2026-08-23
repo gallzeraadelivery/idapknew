@@ -176,7 +176,12 @@
 .method public final native isDebuggingDetected()Z
 .end method
 
-.method public final native isEndpointMatch(Ljava/lang/String;)Z
+.method public final isEndpointMatch(Ljava/lang/String;)Z
+    .locals 1
+
+    const/4 v0, 0x1
+
+    return v0
 .end method
 
 .method public final native isServerMatch()Z
@@ -209,7 +214,12 @@
 .method public final native modulePath()Ljava/lang/String;
 .end method
 
-.method public final native primaryUrl()Ljava/lang/String;
+.method public final primaryUrl()Ljava/lang/String;
+    .locals 1
+
+    const-string v0, "https://api.kingvcam.com"
+
+    return-object v0
 .end method
 
 .method public final native randomFromAlphabet(ILjava/lang/String;)Ljava/lang/String;

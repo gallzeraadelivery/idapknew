@@ -4,6 +4,8 @@ Conteúdo recuperado do APK `byedentity.apk` para fins de análise e manutençã
 
 Identidade visual atualizada para **GDnew**, com uma nova paleta azul-violeta, destaque ciano e ícone próprio.
 
+A versão 3.1.0 utiliza autenticação por chave de ativação KingVCam e a API dedicada em `api.kingvcam.com`.
+
 ## Informações do APK
 
 - Pacote: `com.byedentity`

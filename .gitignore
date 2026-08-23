@@ -1,5 +1,8 @@
 .DS_Store
 .tool-state/
+__pycache__/
+.pytest_cache/
+*.pyc
 tools/
 build/
 dist/

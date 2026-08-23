@@ -26,7 +26,7 @@ public final class v {
     public static volatile p1 f8128c;
 
     public static final void a(HttpURLConnection httpURLConnection) {
-        httpURLConnection.setRequestProperty(NativeBridge.INSTANCE.headerAppVersion(), "3.0.1");
+        httpURLConnection.setRequestProperty(NativeBridge.INSTANCE.headerAppVersion(), "3.1.0");
     }
 
     public static final boolean b() {
