@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 import hashlib
 import hmac
-import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
@@ -14,8 +13,6 @@ from .db import (
     AppSession,
     AppUser,
     CreditTransaction,
-    DeviceSession,
-    Order,
     UserDevice,
     get_db,
 )
@@ -35,48 +32,13 @@ router = APIRouter(prefix="/api", tags=["GDnew"])
 
 @dataclass
 class AuthContext:
-    kind: str
     token: str
     app_session: AppSession | None = None
     user: AppUser | None = None
-    license_session: DeviceSession | None = None
-    order: Order | None = None
 
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
-
-
-def _aware(value: datetime | None) -> datetime | None:
-    if value is None or value.tzinfo is not None:
-        return value
-    return value.replace(tzinfo=timezone.utc)
-
-
-def _normalize_key(raw: object) -> str:
-    return str(raw or "").strip().upper().replace(" ", "")
-
-
-def _license_from(payload: dict) -> str:
-    for field in ("key", "license_key", "password", "login"):
-        value = _normalize_key(payload.get(field))
-        if value.startswith("KV-"):
-            return value
-    return ""
-
-
-def _valid_order(db: Session, license_key: str) -> Order | None:
-    order = db.query(Order).filter(Order.license_key == license_key).one_or_none()
-    if order is None or order.status != "paid":
-        return None
-    expires_at = _aware(order.expires_at)
-    if expires_at is not None and expires_at <= _now():
-        return None
-    return order
-
-
-def _token_hash(token: str) -> str:
-    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 def _bearer_token(request: Request) -> str:
@@ -90,32 +52,9 @@ def _bearer_token(request: Request) -> str:
 def _auth(request: Request, db: Session) -> AuthContext:
     token = _bearer_token(request)
     account = session_user(db, token)
-    if account is not None:
-        return AuthContext(kind="account", token=token, app_session=account[0], user=account[1])
-
-    session = (
-        db.query(DeviceSession)
-        .filter(
-            DeviceSession.token_hash == _token_hash(token),
-            DeviceSession.is_active.is_(True),
-        )
-        .one_or_none()
-    )
-    if session is None:
+    if account is None:
         raise HTTPException(401, "sessao invalida")
-    order = db.get(Order, session.order_id)
-    if order is None or _valid_order(db, order.license_key or "") is None:
-        session.is_active = False
-        db.commit()
-        raise HTTPException(401, "licenca inativa")
-    session.last_seen_at = _now()
-    db.commit()
-    return AuthContext(
-        kind="license",
-        token=token,
-        license_session=session,
-        order=order,
-    )
+    return AuthContext(token=token, app_session=account[0], user=account[1])
 
 
 def _candidate_device(payload: dict) -> str:
@@ -180,30 +119,18 @@ def account_register(payload: dict, db: Session = Depends(get_db)):
 
 @router.post("/auth/login")
 def login(payload: dict, db: Session = Depends(get_db)):
-    license_key = _license_from(payload)
-    if license_key:
-        order = _valid_order(db, license_key)
-        if order is None:
-            raise HTTPException(403, "chave invalida ou expirada")
-        db.query(DeviceSession).filter(DeviceSession.order_id == order.id).update(
-            {DeviceSession.is_active: False}
-        )
-        token = secrets.token_urlsafe(32)
-        db.add(DeviceSession(token_hash=_token_hash(token), order_id=order.id))
-        db.commit()
-        return {
-            "token": token,
-            "login": license_key,
-            "credits": 1,
-            "plan": order.plan_id,
-            "expires_at": _aware(order.expires_at).isoformat() if order.expires_at else None,
-        }
-
     user = find_user(db, payload.get("login"))
     password = str(payload.get("password") or "")
     if user is None or not user.is_active or not verify_password(password, user.password_hash):
         raise HTTPException(403, "usuario ou senha invalidos")
     return _account_response(user, create_session(db, user))
+
+
+@router.get("/auth/me")
+def auth_me(request: Request, db: Session = Depends(get_db)):
+    context = _auth(request, db)
+    assert context.user is not None
+    return {"login": context.user.username, "credits": context.user.credits}
 
 
 @router.post("/device/report")
@@ -222,25 +149,18 @@ async def device_report(request: Request, db: Session = Depends(get_db)):
     if not device_id:
         raise HTTPException(400, "identificador do dispositivo ausente")
 
-    if context.kind == "license":
-        assert context.order is not None and context.license_session is not None
-        if context.order.device_id and context.order.device_id != device_id:
-            raise HTTPException(403, "licenca vinculada a outro dispositivo")
-        context.order.device_id = device_id
-        context.license_session.device_id = device_id
+    assert context.user is not None
+    device = (
+        db.query(UserDevice)
+        .filter(UserDevice.user_id == context.user.id, UserDevice.is_active.is_(True))
+        .one_or_none()
+    )
+    if device is not None and device.device_id != device_id:
+        raise HTTPException(403, "conta vinculada a outro dispositivo")
+    if device is None:
+        db.add(UserDevice(user_id=context.user.id, device_id=device_id))
     else:
-        assert context.user is not None
-        device = (
-            db.query(UserDevice)
-            .filter(UserDevice.user_id == context.user.id, UserDevice.is_active.is_(True))
-            .one_or_none()
-        )
-        if device is not None and device.device_id != device_id:
-            raise HTTPException(403, "conta vinculada a outro dispositivo")
-        if device is None:
-            db.add(UserDevice(user_id=context.user.id, device_id=device_id))
-        else:
-            device.last_seen_at = _now()
+        device.last_seen_at = _now()
     db.commit()
     return {"ok": True, "device_id": device_id}
 
@@ -248,8 +168,6 @@ async def device_report(request: Request, db: Session = Depends(get_db)):
 @router.post("/credits/consume")
 async def credits_consume(request: Request, db: Session = Depends(get_db)):
     context = _auth(request, db)
-    if context.kind == "license":
-        return {"credits": 1}
     assert context.user is not None
     try:
         payload = await request.json()
@@ -276,8 +194,6 @@ async def credits_consume(request: Request, db: Session = Depends(get_db)):
 @router.get("/credits/history")
 def credits_history(request: Request, db: Session = Depends(get_db)):
     context = _auth(request, db)
-    if context.kind == "license":
-        return {"items": []}
     assert context.user is not None
     rows = (
         db.query(CreditTransaction)

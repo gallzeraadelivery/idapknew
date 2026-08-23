@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Clientes · KingVCam Admin</title>
+  <title>Clientes · GDnew Admin</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
   <header>
-    <div class="brand">KingVCam · Admin</div>
+    <div class="brand">GDnew · Admin</div>
     <nav class="admin-nav">
-      <a href="/admin">Pedidos</a>
+
       <a class="active" href="/admin/customers">Clientes</a>
       {% if user.role == "admin" %}<a href="/admin/users">Usuários</a>{% endif %}
       <span class="muted">{{ user.username }}</span>

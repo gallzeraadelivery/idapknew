@@ -1,6 +1,4 @@
 #!/bin/sh
 set -e
-cd /opt/kingvcam
-mkdir -p debug-logs
-chmod 755 debug-logs
+cd /opt/gdnew
 docker compose up -d --build

@@ -1,4 +1,5 @@
 from pathlib import Path
+import secrets
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -8,7 +9,6 @@ from sqlalchemy.orm import Session
 from .config import settings
 from .credits import CREDIT_PACKAGES
 from .db import AppUser, CreditPurchase, CreditTransaction, get_db
-from .keys import new_order_id
 from .nowpayments import create_invoice
 from .user_auth import (
     COOKIE,
@@ -25,6 +25,10 @@ from .user_auth import (
 ROOT = Path(__file__).resolve().parents[1]
 templates = Jinja2Templates(directory=str(ROOT / "templates"))
 router = APIRouter(prefix="/account")
+
+
+def new_purchase_id() -> str:
+    return secrets.token_hex(12)
 
 
 def current_account(request: Request, db: Session = Depends(get_db)) -> AppUser:
@@ -170,11 +174,11 @@ async def checkout(
     package = CREDIT_PACKAGES.get(package_id)
     if package is None:
         raise HTTPException(404, "pacote invalido")
-    purchase_id = new_order_id()
+    purchase_id = new_purchase_id()
     invoice = await create_invoice(
         order_id=purchase_id,
         amount=package["price_usd"],
-        description=f"KingVCam {package['label']}",
+        description=f"GDnew {package['label']}",
         success_url=f"{settings.public_url}/account?ok=payment",
         cancel_url=f"{settings.public_url}/account",
         ipn_url=f"{settings.public_url}/api/payments/ipn",

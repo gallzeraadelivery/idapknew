@@ -61,7 +61,7 @@
     move-result-object v0
 
     .line 7
-    const-string v1, "3.2.0"
+    const-string v1, "3.3.0"
 
     .line 8
     .line 9

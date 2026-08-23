@@ -62,7 +62,7 @@
 .method public final botLink()Ljava/lang/String;
     .locals 1
 
-    const-string v0, "https://kingvcam.com/account/register"
+    const-string v0, "https://gdnew.kingvcam.com/account/register"
 
     return-object v0
 .end method
@@ -222,7 +222,7 @@
 .method public final primaryUrl()Ljava/lang/String;
     .locals 1
 
-    const-string v0, "https://api.kingvcam.com"
+    const-string v0, "https://gdnew.kingvcam.com"
 
     return-object v0
 .end method
