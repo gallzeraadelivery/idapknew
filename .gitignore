@@ -3,9 +3,9 @@
 tools/
 build/
 dist/
+signing/
 *.apk
 *.apks
 *.aab
 *.jks
 *.keystore
-
