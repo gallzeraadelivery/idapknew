@@ -1,0 +1,11 @@
+.DS_Store
+.tool-state/
+tools/
+build/
+dist/
+*.apk
+*.apks
+*.aab
+*.jks
+*.keystore
+

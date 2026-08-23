@@ -1,0 +1,32 @@
+package g0;
+
+/* JADX INFO: compiled from: r8-map-id-b3ed7b513a806eea4582f74b3cfc679712deeeba80cee032db8dd0545dc25afe */
+/* JADX INFO: loaded from: classes.dex */
+public final class h extends x5.l implements w5.c {
+
+    /* JADX INFO: renamed from: e, reason: collision with root package name */
+    public final /* synthetic */ long f2018e;
+
+    /* JADX INFO: renamed from: f, reason: collision with root package name */
+    public final /* synthetic */ w5.a f2019f;
+
+    /* JADX INFO: renamed from: g, reason: collision with root package name */
+    public final /* synthetic */ boolean f2020g;
+
+    /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
+    public h(long j7, w5.a aVar, boolean z2) {
+        super(1);
+        this.f2018e = j7;
+        this.f2019f = aVar;
+        this.f2020g = z2;
+    }
+
+    @Override // w5.c
+    public final Object e(Object obj) {
+        d1.c cVar = (d1.c) obj;
+        g1.f fVarK = x6.c.k(cVar, f1.f.d(cVar.f1312d.e()) / 2.0f);
+        g1.m mVar = g1.m.f2174a;
+        long j7 = this.f2018e;
+        return cVar.a(new g(this.f2019f, this.f2020g, fVarK, new g1.l(j7, 5, mVar.a(j7, 5))));
+    }
+}
