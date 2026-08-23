@@ -11,6 +11,7 @@
     <div class="brand">KingVCam · Admin</div>
     <nav class="admin-nav">
       <a class="active" href="/admin">Pedidos</a>
+      <a href="/admin/customers">Clientes</a>
       {% if user.role == "admin" %}<a href="/admin/users">Usuários</a>{% endif %}
       <span class="muted">{{ user.username }}</span>
       <form method="post" action="/admin/logout">

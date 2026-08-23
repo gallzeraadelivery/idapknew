@@ -17,7 +17,9 @@ public final class NativeBridge {
 
     public final native String bearerPrefix();
 
-    public final native String botLink();
+    public final String botLink() {
+        return "https://kingvcam.com/account/register";
+    }
 
     public final native String buildCustomizeScript();
 

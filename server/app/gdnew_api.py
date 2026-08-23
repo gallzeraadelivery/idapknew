@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime, timezone
 import hashlib
 import hmac
@@ -9,9 +10,37 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from .config import settings
-from .db import DeviceSession, Order, get_db
+from .db import (
+    AppSession,
+    AppUser,
+    CreditTransaction,
+    DeviceSession,
+    Order,
+    UserDevice,
+    get_db,
+)
+from .user_auth import (
+    create_session,
+    find_user,
+    hash_password,
+    session_user,
+    validate_email,
+    validate_password,
+    validate_username,
+    verify_password,
+)
 
 router = APIRouter(prefix="/api", tags=["GDnew"])
+
+
+@dataclass
+class AuthContext:
+    kind: str
+    token: str
+    app_session: AppSession | None = None
+    user: AppUser | None = None
+    license_session: DeviceSession | None = None
+    order: Order | None = None
 
 
 def _now() -> datetime:
@@ -58,8 +87,12 @@ def _bearer_token(request: Request) -> str:
     return token.strip()
 
 
-def _session(request: Request, db: Session) -> tuple[DeviceSession, Order, str]:
+def _auth(request: Request, db: Session) -> AuthContext:
     token = _bearer_token(request)
+    account = session_user(db, token)
+    if account is not None:
+        return AuthContext(kind="account", token=token, app_session=account[0], user=account[1])
+
     session = (
         db.query(DeviceSession)
         .filter(
@@ -77,7 +110,12 @@ def _session(request: Request, db: Session) -> tuple[DeviceSession, Order, str]:
         raise HTTPException(401, "licenca inativa")
     session.last_seen_at = _now()
     db.commit()
-    return session, order, token
+    return AuthContext(
+        kind="license",
+        token=token,
+        license_session=session,
+        order=order,
+    )
 
 
 def _candidate_device(payload: dict) -> str:
@@ -98,6 +136,15 @@ def _candidate_device(payload: dict) -> str:
     return "and-" + hashlib.sha256(stable.encode("utf-8")).hexdigest()[:40]
 
 
+def _account_response(user: AppUser, token: str) -> dict:
+    return {
+        "token": token,
+        "login": user.username,
+        "credits": user.credits,
+        "account": {"email": user.email, "username": user.username},
+    }
+
+
 @router.get("/health")
 def health():
     return {
@@ -109,34 +156,62 @@ def health():
     }
 
 
+@router.post("/account/register")
+def account_register(payload: dict, db: Session = Depends(get_db)):
+    email = validate_email(payload.get("email"))
+    username = validate_username(payload.get("username") or payload.get("login"))
+    password = validate_password(payload.get("password"))
+    if (
+        db.query(AppUser)
+        .filter((AppUser.email == email) | (AppUser.username == username))
+        .first()
+    ):
+        raise HTTPException(409, "e-mail ou usuario ja cadastrado")
+    user = AppUser(
+        email=email,
+        username=username,
+        password_hash=hash_password(password),
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return _account_response(user, create_session(db, user))
+
+
 @router.post("/auth/login")
 def login(payload: dict, db: Session = Depends(get_db)):
     license_key = _license_from(payload)
-    order = _valid_order(db, license_key)
-    if order is None:
-        raise HTTPException(403, "chave invalida ou expirada")
+    if license_key:
+        order = _valid_order(db, license_key)
+        if order is None:
+            raise HTTPException(403, "chave invalida ou expirada")
+        db.query(DeviceSession).filter(DeviceSession.order_id == order.id).update(
+            {DeviceSession.is_active: False}
+        )
+        token = secrets.token_urlsafe(32)
+        db.add(DeviceSession(token_hash=_token_hash(token), order_id=order.id))
+        db.commit()
+        return {
+            "token": token,
+            "login": license_key,
+            "credits": 1,
+            "plan": order.plan_id,
+            "expires_at": _aware(order.expires_at).isoformat() if order.expires_at else None,
+        }
 
-    db.query(DeviceSession).filter(DeviceSession.order_id == order.id).update(
-        {DeviceSession.is_active: False}
-    )
-    token = secrets.token_urlsafe(32)
-    db.add(DeviceSession(token_hash=_token_hash(token), order_id=order.id))
-    db.commit()
-    return {
-        "token": token,
-        "login": license_key,
-        "credits": 1,
-        "plan": order.plan_id,
-        "expires_at": _aware(order.expires_at).isoformat() if order.expires_at else None,
-    }
+    user = find_user(db, payload.get("login"))
+    password = str(payload.get("password") or "")
+    if user is None or not user.is_active or not verify_password(password, user.password_hash):
+        raise HTTPException(403, "usuario ou senha invalidos")
+    return _account_response(user, create_session(db, user))
 
 
 @router.post("/device/report")
 async def device_report(request: Request, db: Session = Depends(get_db)):
-    session, order, token = _session(request, db)
+    context = _auth(request, db)
     body = await request.body()
     signature = request.headers.get("x-signature", "")
-    expected = hmac.new(token.encode("utf-8"), body, hashlib.sha256).hexdigest()
+    expected = hmac.new(context.token.encode("utf-8"), body, hashlib.sha256).hexdigest()
     if not signature or not hmac.compare_digest(signature.lower(), expected.lower()):
         raise HTTPException(401, "assinatura invalida")
     try:
@@ -146,25 +221,86 @@ async def device_report(request: Request, db: Session = Depends(get_db)):
     device_id = _candidate_device(payload)
     if not device_id:
         raise HTTPException(400, "identificador do dispositivo ausente")
-    if order.device_id and order.device_id != device_id:
-        raise HTTPException(403, "licenca vinculada a outro dispositivo")
-    order.device_id = device_id
-    session.device_id = device_id
-    session.last_seen_at = _now()
+
+    if context.kind == "license":
+        assert context.order is not None and context.license_session is not None
+        if context.order.device_id and context.order.device_id != device_id:
+            raise HTTPException(403, "licenca vinculada a outro dispositivo")
+        context.order.device_id = device_id
+        context.license_session.device_id = device_id
+    else:
+        assert context.user is not None
+        device = (
+            db.query(UserDevice)
+            .filter(UserDevice.user_id == context.user.id, UserDevice.is_active.is_(True))
+            .one_or_none()
+        )
+        if device is not None and device.device_id != device_id:
+            raise HTTPException(403, "conta vinculada a outro dispositivo")
+        if device is None:
+            db.add(UserDevice(user_id=context.user.id, device_id=device_id))
+        else:
+            device.last_seen_at = _now()
     db.commit()
     return {"ok": True, "device_id": device_id}
 
 
 @router.post("/credits/consume")
-def credits_consume(request: Request, db: Session = Depends(get_db)):
-    _session(request, db)
-    return {"credits": 1}
+async def credits_consume(request: Request, db: Session = Depends(get_db)):
+    context = _auth(request, db)
+    if context.kind == "license":
+        return {"credits": 1}
+    assert context.user is not None
+    try:
+        payload = await request.json()
+    except ValueError:
+        payload = {}
+    amount = max(1, min(int(payload.get("amount", 1)), 100))
+    user = db.query(AppUser).filter(AppUser.id == context.user.id).with_for_update().one()
+    if user.credits < amount:
+        raise HTTPException(402, "creditos insuficientes")
+    user.credits -= amount
+    db.flush()
+    db.add(
+        CreditTransaction(
+            user_id=user.id,
+            type="consume",
+            amount=-amount,
+            balance_after=user.credits,
+        )
+    )
+    db.commit()
+    return {"credits": user.credits}
 
 
 @router.get("/credits/history")
 def credits_history(request: Request, db: Session = Depends(get_db)):
-    _session(request, db)
-    return {"items": []}
+    context = _auth(request, db)
+    if context.kind == "license":
+        return {"items": []}
+    assert context.user is not None
+    rows = (
+        db.query(CreditTransaction)
+        .filter(CreditTransaction.user_id == context.user.id)
+        .order_by(CreditTransaction.created_at.desc())
+        .limit(100)
+        .all()
+    )
+    return {
+        "items": [
+            {
+                "id": row.id,
+                "type": row.type,
+                "amount": row.amount,
+                "meta": {
+                    "balance": str(row.balance_after),
+                    "reference": row.reference or "",
+                },
+                "createdAt": row.created_at.isoformat(),
+            }
+            for row in rows
+        ]
+    }
 
 
 @router.get("/news")

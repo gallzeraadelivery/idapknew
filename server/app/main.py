@@ -9,10 +9,11 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from .admin import router as admin_router
+from .account import router as account_router
 from .auth import current_user
 from .gdnew_api import router as gdnew_router
 from .config import settings
-from .db import Order, get_db, init_db
+from .db import AppUser, CreditPurchase, CreditTransaction, Order, get_db, init_db
 from .keys import new_license_key, new_order_id
 from .nowpayments import create_invoice, verify_ipn
 from .plans import PLANS
@@ -24,6 +25,7 @@ app = FastAPI(title="KingVCam", docs_url=None, redoc_url=None)
 app.mount("/static", StaticFiles(directory=str(ROOT / "static")), name="static")
 app.include_router(admin_router)
 app.include_router(gdnew_router)
+app.include_router(account_router)
 
 
 @app.exception_handler(HTTPException)
@@ -116,8 +118,32 @@ async def payments_ipn(request: Request, db: Session = Depends(get_db)):
     order_id = str(body.get("order_id") or "")
     status = str(body.get("payment_status") or "")
     order = db.get(Order, order_id)
-    if order is None:
+    purchase = db.get(CreditPurchase, order_id)
+    if order is None and purchase is None:
         return JSONResponse({"ok": False, "reason": "order_not_found"})
+    if purchase is not None:
+        purchase.payment_id = str(body.get("payment_id") or purchase.payment_id or "")
+        if status in {"finished", "confirmed"} and purchase.status != "paid":
+            user = db.get(AppUser, purchase.user_id)
+            if user is None:
+                return JSONResponse({"ok": False, "reason": "user_not_found"})
+            purchase.status = "paid"
+            purchase.paid_at = datetime.now(timezone.utc)
+            user.credits += purchase.credits
+            db.flush()
+            db.add(
+                CreditTransaction(
+                    user_id=user.id,
+                    type="crypto",
+                    amount=purchase.credits,
+                    balance_after=user.credits,
+                    reference=purchase.id,
+                )
+            )
+        elif status in {"failed", "expired", "refunded"} and purchase.status != "paid":
+            purchase.status = status
+        db.commit()
+        return {"ok": True}
     order.payment_id = str(body.get("payment_id") or order.payment_id or "")
     if status in {"finished", "confirmed"} and order.status != "paid":
         now = datetime.now(timezone.utc)

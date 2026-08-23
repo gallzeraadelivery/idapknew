@@ -21,7 +21,7 @@ from .auth import (
     verify_password,
 )
 from .config import settings
-from .db import AdminUser, Order, get_db
+from .db import AppSession, AppUser, AdminUser, CreditTransaction, Order, UserDevice, get_db
 from .keys import new_license_key, new_order_id
 from .plans import PLANS
 
@@ -381,3 +381,91 @@ def admin_orders_json(
     now = datetime.now(timezone.utc)
     rows = db.query(Order).order_by(Order.created_at.desc()).limit(200).all()
     return [_order_view(row, now) for row in rows]
+
+
+@router.get("/admin/customers", response_class=HTMLResponse)
+def admin_customers(
+    request: Request,
+    q: str = Query(default=""),
+    db: Session = Depends(get_db),
+    user: AdminUser = Depends(current_user),
+):
+    query = db.query(AppUser).order_by(AppUser.created_at.desc())
+    needle = q.strip().lower()
+    if needle:
+        query = query.filter(
+            (AppUser.email.ilike(f"%{needle}%")) | (AppUser.username.ilike(f"%{needle}%"))
+        )
+    rows = query.limit(500).all()
+    devices = {
+        row.user_id: row.device_id
+        for row in db.query(UserDevice).filter(UserDevice.is_active.is_(True)).all()
+    }
+    return templates.TemplateResponse(
+        "admin_customers.html",
+        {
+            "request": request,
+            "user": user,
+            "customers": rows,
+            "devices": devices,
+            "q": q,
+            "flash": request.query_params.get("ok", ""),
+        },
+    )
+
+
+@router.post("/admin/customers/{user_id}/credits")
+def admin_customer_credits(
+    user_id: int,
+    amount: int = Form(...),
+    db: Session = Depends(get_db),
+    _: AdminUser = Depends(current_user),
+):
+    if amount == 0 or amount < -10000 or amount > 10000:
+        raise HTTPException(400, "quantidade invalida")
+    customer = db.query(AppUser).filter(AppUser.id == user_id).with_for_update().one_or_none()
+    if customer is None:
+        raise HTTPException(404, "cliente nao encontrado")
+    if customer.credits + amount < 0:
+        raise HTTPException(400, "saldo insuficiente")
+    customer.credits += amount
+    db.flush()
+    db.add(
+        CreditTransaction(
+            user_id=customer.id,
+            type="admin_add" if amount > 0 else "subtraction",
+            amount=amount,
+            balance_after=customer.credits,
+            reference="admin",
+        )
+    )
+    db.commit()
+    return RedirectResponse("/admin/customers?ok=credits", status_code=303)
+
+
+@router.post("/admin/customers/{user_id}/unbind")
+def admin_customer_unbind(
+    user_id: int,
+    db: Session = Depends(get_db),
+    _: AdminUser = Depends(current_user),
+):
+    db.query(UserDevice).filter(UserDevice.user_id == user_id).update({UserDevice.is_active: False})
+    db.query(AppSession).filter(AppSession.user_id == user_id).update({AppSession.is_active: False})
+    db.commit()
+    return RedirectResponse("/admin/customers?ok=unbound", status_code=303)
+
+
+@router.post("/admin/customers/{user_id}/toggle")
+def admin_customer_toggle(
+    user_id: int,
+    db: Session = Depends(get_db),
+    _: AdminUser = Depends(require_admin_role),
+):
+    customer = db.get(AppUser, user_id)
+    if customer is None:
+        raise HTTPException(404, "cliente nao encontrado")
+    customer.is_active = not customer.is_active
+    if not customer.is_active:
+        db.query(AppSession).filter(AppSession.user_id == user_id).update({AppSession.is_active: False})
+    db.commit()
+    return RedirectResponse("/admin/customers?ok=toggled", status_code=303)

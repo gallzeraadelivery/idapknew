@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     admin_password: str = ""
     secret_key: str = ""
     gdnew_min_version: str = "3.1.0"
-    gdnew_latest_version: str = "3.1.0"
+    gdnew_latest_version: str = "3.2.0"
     gdnew_update_url: str = "https://kingvcam.com"
 
 

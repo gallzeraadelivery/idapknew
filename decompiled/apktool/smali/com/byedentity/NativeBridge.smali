@@ -59,7 +59,12 @@
 .method public final native bearerPrefix()Ljava/lang/String;
 .end method
 
-.method public final native botLink()Ljava/lang/String;
+.method public final botLink()Ljava/lang/String;
+    .locals 1
+
+    const-string v0, "https://kingvcam.com/account/register"
+
+    return-object v0
 .end method
 
 .method public final native buildCustomizeScript()Ljava/lang/String;
