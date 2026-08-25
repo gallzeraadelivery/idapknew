@@ -39,8 +39,6 @@ def validate_password(raw: object) -> str:
     password = str(raw or "")
     if len(password) < 8 or len(password) > 128:
         raise HTTPException(400, "a senha deve ter entre 8 e 128 caracteres")
-    if password.lower() == password or password.upper() == password or not any(ch.isdigit() for ch in password):
-        raise HTTPException(400, "use letras maiusculas, minusculas e numeros")
     return password
 
 

@@ -14,13 +14,16 @@
     <h1>Crie sua conta</h1>
     <p class="note registration-note">Cadastro imediato: não enviamos nem exigimos confirmação por e-mail.</p>
     {% if error == "confirm" %}<p class="flash error">As senhas não coincidem.</p>{% endif %}
-    {% if error == "invalid" %}<p class="flash error">Revise e-mail, usuário e senha. A senha precisa de 8 caracteres, maiúscula, minúscula e número.</p>{% endif %}
+    {% if error == "invalid" %}<p class="flash error">Revise os dados informados.</p>{% endif %}
+    {% if error == "email" %}<p class="flash error">Informe um endereço de e-mail válido.</p>{% endif %}
+    {% if error == "username" %}<p class="flash error">O usuário deve ter de 3 a 32 caracteres e usar apenas letras, números, ponto, hífen ou sublinhado, sem espaços.</p>{% endif %}
+    {% if error == "password" %}<p class="flash error">A senha deve ter pelo menos 8 caracteres.</p>{% endif %}
     {% if error == "exists" %}<p class="flash error">E-mail ou usuário já cadastrado.</p>{% endif %}
     <form class="admin-login" method="post" action="/account/register">
       <label for="email">E-mail (sem confirmação)</label>
       <input id="email" name="email" type="email" autocomplete="email" required>
       <label for="username">Usuário</label>
-      <input id="username" name="username" minlength="3" maxlength="32" autocomplete="username" required>
+      <input id="username" name="username" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]+" title="Use apenas letras, números, ponto, hífen ou sublinhado, sem espaços" autocomplete="username" required>
       <label for="password">Senha</label>
       <input id="password" name="password" type="password" minlength="8" maxlength="128" autocomplete="new-password" required>
       <label for="password_confirm">Repita a senha</label>

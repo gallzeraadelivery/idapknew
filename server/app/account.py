@@ -72,10 +72,16 @@ def register(
         return RedirectResponse("/account/register?e=confirm", status_code=303)
     try:
         clean_email = validate_email(email)
+    except HTTPException:
+        return RedirectResponse("/account/register?e=email", status_code=303)
+    try:
         clean_username = validate_username(username)
+    except HTTPException:
+        return RedirectResponse("/account/register?e=username", status_code=303)
+    try:
         clean_password = validate_password(password)
     except HTTPException:
-        return RedirectResponse("/account/register?e=invalid", status_code=303)
+        return RedirectResponse("/account/register?e=password", status_code=303)
     if (
         db.query(AppUser)
         .filter((AppUser.email == clean_email) | (AppUser.username == clean_username))
