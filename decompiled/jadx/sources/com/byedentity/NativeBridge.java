@@ -18,7 +18,7 @@ public final class NativeBridge {
     public final native String bearerPrefix();
 
     public final String botLink() {
-        return "https://gdnew.kingvcam.com/account/register";
+        return "https://gdnew.gdapps.online/account/register";
     }
 
     public final native String buildCustomizeScript();
@@ -122,7 +122,7 @@ public final class NativeBridge {
     public final native String modulePath();
 
     public final String primaryUrl() {
-        return "https://gdnew.kingvcam.com";
+        return "https://gdnew.gdapps.online";
     }
 
     public final native String randomFromAlphabet(int i, String str);

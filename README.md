@@ -4,12 +4,12 @@ Conteúdo recuperado do APK `byedentity.apk` para fins de análise e manutençã
 
 Identidade visual atualizada para **GDnew**, com uma nova paleta azul-violeta, destaque ciano e ícone próprio.
 
-A versão 3.3.0 utiliza exclusivamente contas com login, senha e carteira de créditos na API isolada em `gdnew.kingvcam.com/api`. Não há compatibilidade com chaves ou serviços de outros aplicativos.
+A versão 3.5.0 utiliza exclusivamente contas com login, senha e carteira de créditos na API isolada em `gdnew.gdapps.online/api`. O domínio anterior permanece temporariamente como compatibilidade. Não há compatibilidade com chaves ou serviços de outros aplicativos.
 
 ## Informações do APK
 
 - Pacote: `com.byedentity`
-- Versão atual: `3.4.1` (`versionCode` 341)
+- Versão atual: `3.5.0` (`versionCode` 350)
 - Versão do APK original: `3.0.1` (`versionCode` 301)
 - Android mínimo: API 30
 - Android alvo: API 36
