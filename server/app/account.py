@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from .config import settings
 from .credits import packages_for_view
 from .db import AppUser, CreditPackage, CreditPurchase, CreditTransaction, get_db
+from .i18n import language_context, request_language
 from .nowpayments import create_invoice
 from .user_auth import (
     COOKIE,
@@ -55,7 +56,7 @@ def _set_cookie(response: RedirectResponse, request: Request, token: str) -> Non
 def register_page(request: Request):
     return templates.TemplateResponse(
         "account_register.html",
-        {"request": request, "error": request.query_params.get("e", "")},
+        {"request": request, "error": request.query_params.get("e", ""), **language_context(request)},
     )
 
 
@@ -107,7 +108,7 @@ def register(
 def login_page(request: Request):
     return templates.TemplateResponse(
         "account_login.html",
-        {"request": request, "error": request.query_params.get("e", "")},
+        {"request": request, "error": request.query_params.get("e", ""), **language_context(request)},
     )
 
 
@@ -165,15 +166,17 @@ def dashboard(
         .order_by(CreditPackage.sort_order.asc(), CreditPackage.id.asc())
         .all()
     )
+    lang = request_language(request)
     return templates.TemplateResponse(
         "account.html",
         {
             "request": request,
             "user": user,
-            "packages": packages_for_view(packages),
+            "packages": packages_for_view(packages, lang),
             "purchases": purchases,
             "transactions": transactions,
             "flash": request.query_params.get("ok", ""),
+            **language_context(request),
         },
     )
 

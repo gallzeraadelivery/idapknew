@@ -1,27 +1,10 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Entrar · GDnew</title>
-  <link rel="stylesheet" href="/static/style.css">
-</head>
+<html lang="{{ 'pt-BR' if lang == 'pt' else 'en' }}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ t.sign_in }} · GDnew</title><link rel="stylesheet" href="/static/style.css"></head>
 <body>
-  <header><a class="brand brand-link" href="/"><img src="/static/logo.png" alt="GDidNEW"></a></header>
-  <main class="narrow auth-page">
-    <img class="logo small" src="/static/logo.png" alt="GDidNEW">
-    <p class="eyebrow">Conta GDnew</p>
-    <h1>Entre na sua conta</h1>
-    <p class="note">Seu saldo e suas compras ficam disponíveis em todos os acessos autorizados.</p>
-    {% if error == "auth" %}<p class="flash error">Usuário, e-mail ou senha inválidos.</p>{% endif %}
-    <form class="admin-login" method="post" action="/account/login">
-      <label for="login">Usuário ou e-mail</label>
-      <input id="login" name="login" autocomplete="username" required autofocus>
-      <label for="password">Senha</label>
-      <input id="password" name="password" type="password" autocomplete="current-password" required>
-      <button type="submit">Entrar</button>
-    </form>
-    <p class="note">Ainda não possui conta? <a href="/account/register">Cadastre-se</a></p>
-  </main>
-</body>
-</html>
+<header><a class="brand brand-link" href="/"><img src="/static/logo.png" alt="GDidNEW"></a><div class="lang"><a class="{{ 'active' if lang == 'en' else '' }}" href="/language/en">EN</a><a class="{{ 'active' if lang == 'pt' else '' }}" href="/language/pt">PT</a></div></header>
+<main class="narrow auth-page"><img class="logo small" src="/static/logo.png" alt="GDidNEW"><p class="eyebrow">{{ t.gd_account }}</p><h1>{{ t.login_heading }}</h1><p class="note">{{ t.login_note }}</p>
+{% if error == "auth" %}<p class="flash error">{{ t.invalid_login }}</p>{% endif %}
+<form class="admin-login" method="post" action="/account/login"><label for="login">{{ t.username_or_email }}</label><input id="login" name="login" autocomplete="username" required autofocus><label for="password">{{ t.password }}</label><input id="password" name="password" type="password" autocomplete="current-password" required><button type="submit">{{ t.sign_in }}</button></form>
+<p class="note">{{ t.no_account }} <a href="/account/register">{{ t.register }}</a></p></main>
+</body></html>

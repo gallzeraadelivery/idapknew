@@ -12,6 +12,7 @@ from .admin import router as admin_router
 from .credits import packages_for_view
 from .db import AppUser, CreditPackage, CreditPurchase, CreditTransaction, get_db, init_db
 from .gdnew_api import router as gdnew_router
+from .i18n import LANG_COOKIE, SUPPORTED_LANGUAGES, language_context, request_language
 from .nowpayments import verify_ipn
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -38,6 +39,7 @@ def on_startup() -> None:
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request, db: Session = Depends(get_db)):
+    lang = request_language(request)
     rows = (
         db.query(CreditPackage)
         .filter(CreditPackage.is_active.is_(True))
@@ -45,8 +47,20 @@ def home(request: Request, db: Session = Depends(get_db)):
         .all()
     )
     return templates.TemplateResponse(
-        "index.html", {"request": request, "packages": packages_for_view(rows)}
+        "index.html", {"request": request, "packages": packages_for_view(rows, lang), **language_context(request)}
     )
+
+
+@app.get("/language/{lang}")
+def set_language(lang: str, request: Request):
+    selected = lang if lang in SUPPORTED_LANGUAGES else "en"
+    referer = request.headers.get("referer", "")
+    target = str(request.url_for("home"))
+    if referer.startswith(f"{request.url.scheme}://{request.url.netloc}/"):
+        target = referer
+    response = RedirectResponse(target, status_code=303)
+    response.set_cookie(LANG_COOKIE, selected, max_age=60 * 60 * 24 * 365, secure=request.url.scheme == "https", samesite="lax", path="/")
+    return response
 
 
 @app.post("/api/payments/ipn")

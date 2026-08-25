@@ -1,9 +1,12 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="{{ 'pt-BR' if lang == 'pt' else 'en' }}">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GDnew</title><link rel="stylesheet" href="/static/style.css"></head>
 <body>
-<header><a class="brand brand-link" href="/"><img src="/static/logo.png" alt="GDidNEW"></a><nav class="site-nav"><a href="/account/login">Entrar</a><a class="nav-primary" href="/account/register">Criar conta</a></nav></header>
-<main><div class="hero"><img class="logo" src="/static/logo.png" alt="GDidNEW"><p class="eyebrow">Conta e créditos GDnew</p></div>
-<section class="plans">{% for package in packages %}<article class="card{% if package.popular %} popular{% endif %}">{% if package.popular %}<span class="badge">POPULAR</span>{% endif %}<h2>{{ package.label }}</h2><p class="price">$ {{ '%.2f'|format(package.price_usd) }}</p><a class="nav-primary" href="/account/register">Criar conta</a></article>{% endfor %}</section>
-<p class="note">Entre ou crie sua conta para comprar créditos e acompanhar seu saldo no GDnew.</p></main>
+<header>
+  <a class="brand brand-link" href="/"><img src="/static/logo.png" alt="GDidNEW"></a>
+  <div class="header-actions"><div class="lang" aria-label="{{ t.language }}"><a class="{{ 'active' if lang == 'en' else '' }}" href="/language/en">EN</a><a class="{{ 'active' if lang == 'pt' else '' }}" href="/language/pt">PT</a></div><nav class="site-nav"><a href="/account/login">{{ t.sign_in }}</a><a class="nav-primary" href="/account/register">{{ t.create_account }}</a></nav></div>
+</header>
+<main><div class="hero"><img class="logo" src="/static/logo.png" alt="GDidNEW"><p class="eyebrow">{{ t.account_credits }}</p></div>
+<section class="plans">{% for package in packages %}<article class="card{% if package.popular %} popular{% endif %}">{% if package.popular %}<span class="badge">{{ t.popular }}</span>{% endif %}<h2>{{ package.label }}</h2><p class="price">$ {{ '%.2f'|format(package.price_usd) }}</p><a class="nav-primary" href="/account/register">{{ t.create_account }}</a></article>{% endfor %}</section>
+<p class="note">{{ t.home_note }}</p></main>
 </body></html>

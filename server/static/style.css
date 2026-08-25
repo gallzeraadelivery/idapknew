@@ -50,7 +50,7 @@ header {
   border-radius: 999px;
   border: 1px solid var(--line);
 }
-.lang button, .currency button {
+.lang button, .lang a, .currency button {
   border: 0;
   background: transparent;
   color: var(--muted);
@@ -58,8 +58,9 @@ header {
   border-radius: 999px;
   cursor: pointer;
   width: auto;
+  text-decoration: none;
 }
-.lang button.active, .currency button.active {
+.lang button.active, .lang a.active, .currency button.active {
   background: var(--yellow);
   color: #111;
   font-weight: 700;

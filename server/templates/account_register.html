@@ -1,36 +1,10 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Criar conta · GDnew</title>
-  <link rel="stylesheet" href="/static/style.css">
-</head>
+<html lang="{{ 'pt-BR' if lang == 'pt' else 'en' }}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ t.create_account }} · GDnew</title><link rel="stylesheet" href="/static/style.css"></head>
 <body>
-  <header><a class="brand brand-link" href="/"><img src="/static/logo.png" alt="GDidNEW"></a></header>
-  <main class="narrow auth-page">
-    <img class="logo small" src="/static/logo.png" alt="GDidNEW">
-    <p class="eyebrow">Conta GDnew</p>
-    <h1>Crie sua conta</h1>
-    <p class="note registration-note">Cadastro imediato: não enviamos nem exigimos confirmação por e-mail.</p>
-    {% if error == "confirm" %}<p class="flash error">As senhas não coincidem.</p>{% endif %}
-    {% if error == "invalid" %}<p class="flash error">Revise os dados informados.</p>{% endif %}
-    {% if error == "email" %}<p class="flash error">Informe um endereço de e-mail válido.</p>{% endif %}
-    {% if error == "username" %}<p class="flash error">O usuário deve ter de 3 a 32 caracteres e usar apenas letras, números, ponto, hífen ou sublinhado, sem espaços.</p>{% endif %}
-    {% if error == "password" %}<p class="flash error">A senha deve ter pelo menos 8 caracteres.</p>{% endif %}
-    {% if error == "exists" %}<p class="flash error">E-mail ou usuário já cadastrado.</p>{% endif %}
-    <form class="admin-login" method="post" action="/account/register">
-      <label for="email">E-mail (sem confirmação)</label>
-      <input id="email" name="email" type="email" autocomplete="email" required>
-      <label for="username">Usuário</label>
-      <input id="username" name="username" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]+" title="Use apenas letras, números, ponto, hífen ou sublinhado, sem espaços" autocomplete="username" required>
-      <label for="password">Senha</label>
-      <input id="password" name="password" type="password" minlength="8" maxlength="128" autocomplete="new-password" required>
-      <label for="password_confirm">Repita a senha</label>
-      <input id="password_confirm" name="password_confirm" type="password" minlength="8" maxlength="128" autocomplete="new-password" required>
-      <button type="submit">Criar conta</button>
-    </form>
-    <p class="note">Já possui conta? <a href="/account/login">Entrar</a></p>
-  </main>
-</body>
-</html>
+<header><a class="brand brand-link" href="/"><img src="/static/logo.png" alt="GDidNEW"></a><div class="lang"><a class="{{ 'active' if lang == 'en' else '' }}" href="/language/en">EN</a><a class="{{ 'active' if lang == 'pt' else '' }}" href="/language/pt">PT</a></div></header>
+<main class="narrow auth-page"><img class="logo small" src="/static/logo.png" alt="GDidNEW"><p class="eyebrow">{{ t.gd_account }}</p><h1>{{ t.register_heading }}</h1><p class="note registration-note">{{ t.instant_registration }}</p>
+{% if error == "confirm" %}<p class="flash error">{{ t.password_mismatch }}</p>{% endif %}{% if error == "invalid" %}<p class="flash error">{{ t.review_data }}</p>{% endif %}{% if error == "email" %}<p class="flash error">{{ t.invalid_email }}</p>{% endif %}{% if error == "username" %}<p class="flash error">{{ t.invalid_username }}</p>{% endif %}{% if error == "password" %}<p class="flash error">{{ t.invalid_password }}</p>{% endif %}{% if error == "exists" %}<p class="flash error">{{ t.account_exists }}</p>{% endif %}
+<form class="admin-login" method="post" action="/account/register"><label for="email">{{ t.email_no_confirmation }}</label><input id="email" name="email" type="email" autocomplete="email" required><label for="username">{{ t.username }}</label><input id="username" name="username" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]+" title="{{ t.invalid_username }}" autocomplete="username" required><label for="password">{{ t.password }}</label><input id="password" name="password" type="password" minlength="8" maxlength="128" autocomplete="new-password" required><label for="password_confirm">{{ t.repeat_password }}</label><input id="password_confirm" name="password_confirm" type="password" minlength="8" maxlength="128" autocomplete="new-password" required><button type="submit">{{ t.create_account }}</button></form>
+<p class="note">{{ t.have_account }} <a href="/account/login">{{ t.sign_in }}</a></p></main>
+</body></html>

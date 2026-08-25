@@ -46,11 +46,11 @@ def bootstrap_packages() -> None:
         db.close()
 
 
-def packages_for_view(rows):
+def packages_for_view(rows, lang="en"):
     return [
         {
             "id": row.id,
-            "label": row.label,
+            "label": row.label if lang == "pt" else f"{row.credits} credits",
             "credits": row.credits,
             "price_usd": row.price_cents / 100,
             "popular": row.is_popular,
