@@ -33,7 +33,9 @@ class AppUser(Base):
     password_hash: Mapped[str] = mapped_column(String(256))
     credits: Mapped[int] = mapped_column(Integer, default=0)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
-    email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    # GDnew does not require an e-mail confirmation flow. This flag records
+    # that the account is immediately released after registration.
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

@@ -86,6 +86,7 @@ def register(
         email=clean_email,
         username=clean_username,
         password_hash=hash_password(clean_password),
+        email_verified=True,
     )
     db.add(user)
     db.commit()

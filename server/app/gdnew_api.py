@@ -110,6 +110,7 @@ def account_register(payload: dict, db: Session = Depends(get_db)):
         email=email,
         username=username,
         password_hash=hash_password(password),
+        email_verified=True,
     )
     db.add(user)
     db.commit()
