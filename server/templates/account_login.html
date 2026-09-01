@@ -5,6 +5,6 @@
 <header><a class="brand brand-link" href="/"><img src="/static/logo.png" alt="GDidNEW"></a><div class="lang"><a class="{{ 'active' if lang == 'en' else '' }}" href="/language/en">EN</a><a class="{{ 'active' if lang == 'pt' else '' }}" href="/language/pt">PT</a></div></header>
 <main class="narrow auth-page"><img class="logo small" src="/static/logo.png" alt="GDidNEW"><p class="eyebrow">{{ t.gd_account }}</p><h1>{{ t.login_heading }}</h1><p class="note">{{ t.login_note }}</p>
 {% if error == "auth" %}<p class="flash error">{{ t.invalid_login }}</p>{% endif %}
-<form class="admin-login" method="post" action="/account/login"><label for="login">{{ t.username_or_email }}</label><input id="login" name="login" autocomplete="username" required autofocus><label for="password">{{ t.password }}</label><input id="password" name="password" type="password" autocomplete="current-password" required><button type="submit">{{ t.sign_in }}</button></form>
+<form class="admin-login" method="post" action="/account/login"><input name="next" type="hidden" value="{{ next }}"><label for="login">{{ t.username_or_email }}</label><input id="login" name="login" autocomplete="username" required autofocus><label for="password">{{ t.password }}</label><input id="password" name="password" type="password" autocomplete="current-password" required><button type="submit">{{ t.sign_in }}</button></form>
 <p class="note">{{ t.no_account }} <a href="/account/register">{{ t.register }}</a></p></main>
 </body></html>

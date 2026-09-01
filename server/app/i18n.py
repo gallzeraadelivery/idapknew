@@ -6,7 +6,7 @@ LANG_COOKIE = "gd_lang"
 
 TRANSLATIONS = {
     "en": {
-        "sign_in": "Sign in", "create_account": "Create account", "account_credits": "GDnew account and credits",
+        "sign_in": "Sign in", "create_account": "Create account", "account_credits": "GDnew account and credits", "support": "Support",
         "home_note": "Sign in or create an account to buy credits and track your GDnew balance.", "popular": "POPULAR",
         "gd_account": "GDnew account", "login_heading": "Sign in to your account",
         "login_note": "Your balance and purchases are available from every authorized access.",
@@ -24,7 +24,7 @@ TRANSLATIONS = {
         "language": "Language", "english": "English", "portuguese": "Português",
     },
     "pt": {
-        "sign_in": "Entrar", "create_account": "Criar conta", "account_credits": "Conta e créditos GDnew",
+        "sign_in": "Entrar", "create_account": "Criar conta", "account_credits": "Conta e créditos GDnew", "support": "Suporte",
         "home_note": "Entre ou crie sua conta para comprar créditos e acompanhar seu saldo no GDnew.", "popular": "POPULAR",
         "gd_account": "Conta GDnew", "login_heading": "Entre na sua conta",
         "login_note": "Seu saldo e suas compras ficam disponíveis em todos os acessos autorizados.",

@@ -21,7 +21,7 @@ from .auth import (
     verify_password,
 )
 from .config import settings
-from .db import AppSession, AppUser, AdminUser, CreditPackage, CreditTransaction, UserDevice, get_db
+from .db import AppSession, AppUser, AdminUser, CreditPackage, CreditTransaction, SupportMessage, SupportTicket, UserDevice, get_db
 
 ROOT = Path(__file__).resolve().parents[1]
 templates = Jinja2Templates(directory=str(ROOT / "templates"))
@@ -88,6 +88,48 @@ def admin_home(
     _: AdminUser = Depends(current_user),
 ):
     return RedirectResponse("/admin/customers", status_code=303)
+
+
+@router.get("/admin/support", response_class=HTMLResponse)
+def admin_support(request: Request, status: str = Query(default=""), db: Session = Depends(get_db), user: AdminUser = Depends(current_user)):
+    query = db.query(SupportTicket).order_by(SupportTicket.updated_at.desc())
+    if status in {"open", "answered", "closed"}:
+        query = query.filter(SupportTicket.status == status)
+    tickets = query.limit(500).all()
+    customers = {item.id: item for item in db.query(AppUser).filter(AppUser.id.in_([ticket.user_id for ticket in tickets])).all()} if tickets else {}
+    messages = {
+        ticket.id: db.query(SupportMessage).filter(SupportMessage.ticket_id == ticket.id).order_by(SupportMessage.created_at.asc()).all()
+        for ticket in tickets
+    }
+    return templates.TemplateResponse("admin_support.html", {"request": request, "user": user, "tickets": tickets, "customers": customers, "messages": messages, "status": status, "flash": request.query_params.get("ok", "")})
+
+
+@router.post("/admin/support/{ticket_id}/reply")
+def admin_support_reply(ticket_id: int, message: str = Form(...), db: Session = Depends(get_db), user: AdminUser = Depends(current_user)):
+    ticket = db.get(SupportTicket, ticket_id)
+    clean = message.strip()
+    if ticket is None:
+        raise HTTPException(404, "chamado nao encontrado")
+    if not clean or len(clean) > 4000:
+        raise HTTPException(400, "mensagem invalida")
+    ticket.status = "answered"
+    ticket.updated_at = datetime.now(timezone.utc)
+    db.add(SupportMessage(ticket_id=ticket.id, sender_type="support", sender_id=user.id, body=clean))
+    db.commit()
+    return RedirectResponse("/admin/support?ok=replied", status_code=303)
+
+
+@router.post("/admin/support/{ticket_id}/status")
+def admin_support_status(ticket_id: int, status: str = Form(...), db: Session = Depends(get_db), _: AdminUser = Depends(current_user)):
+    ticket = db.get(SupportTicket, ticket_id)
+    if ticket is None:
+        raise HTTPException(404, "chamado nao encontrado")
+    if status not in {"open", "answered", "closed"}:
+        raise HTTPException(400, "status invalido")
+    ticket.status = status
+    ticket.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    return RedirectResponse("/admin/support?ok=status", status_code=303)
 
 
 @router.get("/admin/users", response_class=HTMLResponse)

@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from pathlib import Path
 import secrets
 
@@ -8,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from .config import settings
 from .credits import packages_for_view
-from .db import AppUser, CreditPackage, CreditPurchase, CreditTransaction, get_db
+from .db import AppUser, CreditPackage, CreditPurchase, CreditTransaction, SupportMessage, SupportTicket, get_db
 from .i18n import language_context, request_language
 from .nowpayments import create_invoice
 from .user_auth import (
@@ -36,7 +37,10 @@ def current_account(request: Request, db: Session = Depends(get_db)) -> AppUser:
     token = request.cookies.get(COOKIE, "")
     resolved = session_user(db, token) if token else None
     if resolved is None:
-        raise HTTPException(status_code=307, headers={"Location": "/account/login"})
+        target = "/account/login"
+        if request.url.path == "/account/support":
+            target += "?next=/account/support"
+        raise HTTPException(status_code=307, headers={"Location": target})
     return resolved[1]
 
 
@@ -108,7 +112,7 @@ def register(
 def login_page(request: Request):
     return templates.TemplateResponse(
         "account_login.html",
-        {"request": request, "error": request.query_params.get("e", ""), **language_context(request)},
+        {"request": request, "error": request.query_params.get("e", ""), "next": request.query_params.get("next", ""), **language_context(request)},
     )
 
 
@@ -117,15 +121,60 @@ def login(
     request: Request,
     login: str = Form(...),
     password: str = Form(...),
+    next: str = Form(""),
     db: Session = Depends(get_db),
 ):
     user = find_user(db, login)
     if user is None or not user.is_active or not verify_password(password, user.password_hash):
-        return RedirectResponse("/account/login?e=auth", status_code=303)
+        suffix = "&next=/account/support" if next == "/account/support" else ""
+        return RedirectResponse(f"/account/login?e=auth{suffix}", status_code=303)
     token = create_session(db, user)
-    response = RedirectResponse("/account", status_code=303)
+    target = "/account/support" if next == "/account/support" else "/account"
+    response = RedirectResponse(target, status_code=303)
     _set_cookie(response, request, token)
     return response
+
+
+def _clean_support_text(value: str, limit: int, field: str) -> str:
+    clean = " ".join(value.strip().split()) if field == "subject" else value.strip()
+    if not clean or len(clean) > limit:
+        raise HTTPException(400, f"{field} invalido")
+    return clean
+
+
+@router.get("/support", response_class=HTMLResponse)
+def support_page(request: Request, db: Session = Depends(get_db), user: AppUser = Depends(current_account)):
+    tickets = db.query(SupportTicket).filter(SupportTicket.user_id == user.id).order_by(SupportTicket.updated_at.desc()).limit(100).all()
+    messages = {
+        ticket.id: db.query(SupportMessage).filter(SupportMessage.ticket_id == ticket.id).order_by(SupportMessage.created_at.asc()).all()
+        for ticket in tickets
+    }
+    return templates.TemplateResponse(
+        "account_support.html",
+        {"request": request, "user": user, "tickets": tickets, "messages": messages, "flash": request.query_params.get("ok", ""), **language_context(request)},
+    )
+
+
+@router.post("/support")
+def support_create(subject: str = Form(...), message: str = Form(...), db: Session = Depends(get_db), user: AppUser = Depends(current_account)):
+    ticket = SupportTicket(user_id=user.id, subject=_clean_support_text(subject, 120, "subject"), status="open")
+    db.add(ticket)
+    db.flush()
+    db.add(SupportMessage(ticket_id=ticket.id, sender_type="customer", sender_id=user.id, body=_clean_support_text(message, 4000, "message")))
+    db.commit()
+    return RedirectResponse("/account/support?ok=created", status_code=303)
+
+
+@router.post("/support/{ticket_id}/reply")
+def support_reply(ticket_id: int, message: str = Form(...), db: Session = Depends(get_db), user: AppUser = Depends(current_account)):
+    ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.user_id == user.id).one_or_none()
+    if ticket is None:
+        raise HTTPException(404, "chamado nao encontrado")
+    ticket.status = "open"
+    ticket.updated_at = datetime.now(timezone.utc)
+    db.add(SupportMessage(ticket_id=ticket.id, sender_type="customer", sender_id=user.id, body=_clean_support_text(message, 4000, "message")))
+    db.commit()
+    return RedirectResponse("/account/support?ok=replied", status_code=303)
 
 
 @router.post("/logout")

@@ -11,6 +11,7 @@
     <a class="brand brand-link" href="/"><img src="/static/logo.png" alt="GDidNEW"></a>
     <nav class="admin-nav">
       <div class="lang"><a class="{{ 'active' if lang == 'en' else '' }}" href="/language/en">EN</a><a class="{{ 'active' if lang == 'pt' else '' }}" href="/language/pt">PT</a></div>
+      <a href="/account/support">{{ t.support }}</a>
       <span class="muted">{{ user.username }}</span>
       <form method="post" action="/account/logout"><button class="ghost" type="submit">{{ t.logout }}</button></form>
     </nav>

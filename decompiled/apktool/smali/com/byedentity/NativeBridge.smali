@@ -251,5 +251,10 @@
 .method public final native serialScriptWriteCommand(Ljava/lang/String;)Ljava/lang/String;
 .end method
 
-.method public final native supportLink()Ljava/lang/String;
+.method public final supportLink()Ljava/lang/String;
+    .locals 1
+
+    const-string v0, "https://gdnew.gdapps.online/account/support"
+
+    return-object v0
 .end method

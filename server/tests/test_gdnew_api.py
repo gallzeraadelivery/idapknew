@@ -11,7 +11,7 @@ os.environ["ADMIN_PASSWORD"] = ""
 
 from fastapi.testclient import TestClient
 
-from app.db import AppUser, Base, CreditTransaction, SessionLocal, engine
+from app.db import AppUser, Base, CreditTransaction, SessionLocal, SupportMessage, SupportTicket, engine
 from app.main import app
 
 
@@ -26,7 +26,7 @@ def test_health_contract():
     assert response.status_code == 200
     assert response.json()["service"] == "gdnew"
     assert response.json()["minVersion"] == "3.1.0"
-    assert response.json()["latestVersion"] == "3.3.0"
+    assert response.json()["latestVersion"] == "3.5.1"
 
 
 def test_login_rejects_invalid_key():
@@ -128,3 +128,34 @@ def test_customer_site_pages_render():
         protected = client.get("/account", follow_redirects=False)
         assert protected.status_code == 307
         assert protected.headers["location"] == "/account/login"
+
+
+def test_customer_support_ticket_flow():
+    with TestClient(app) as client:
+        register = client.post(
+            "/account/register",
+            data={
+                "email": "support@example.com",
+                "username": "supportuser",
+                "password": "StrongPass123",
+                "password_confirm": "StrongPass123",
+            },
+            follow_redirects=False,
+        )
+        assert register.status_code == 303
+        page = client.get("/account/support")
+        assert page.status_code == 200
+        created = client.post(
+            "/account/support",
+            data={"subject": "App issue", "message": "I need help with the app."},
+            follow_redirects=False,
+        )
+        assert created.status_code == 303
+
+        db = SessionLocal()
+        ticket = db.query(SupportTicket).one()
+        message = db.query(SupportMessage).one()
+        assert ticket.subject == "App issue"
+        assert ticket.status == "open"
+        assert message.body == "I need help with the app."
+        db.close()

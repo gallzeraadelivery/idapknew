@@ -196,7 +196,7 @@ code.inline {
 .amount.positive { color: #7ee2a2; }
 .amount.negative { color: #ff9e9e; }
 .admin-login label { color: var(--muted); font-size: 13px; }
-input, select {
+input, select, textarea {
   width: 100%;
   background: #11151b;
   color: var(--text);
@@ -205,6 +205,7 @@ input, select {
   padding: 12px 14px;
   font-size: 15px;
 }
+textarea { min-height: 120px; resize: vertical; font-family: inherit; }
 .admin { padding-bottom: 80px; }
 .stats {
   display: grid;
@@ -287,12 +288,29 @@ button.ghost:hover { background: #1d232c; }
   text-transform: uppercase;
 }
 .pill.paid, .pill.active { background: #143322; color: #b6f0c8; }
+.pill.open { background: #3a2f12; color: #ffd878; }
+.pill.answered { background: #12334a; color: #8de4ff; }
+.pill.closed { background: #2a313a; color: var(--muted); }
 .pill.pending { background: #3a2f12; color: var(--yellow); }
 .pill.expired { background: #2a313a; color: var(--muted); }
 .pill.revoked { background: #3a1515; color: #ffb4b4; }
 .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .actions form { display: flex; gap: 6px; margin: 0; }
 .actions input { width: 64px; padding: 6px 8px; }
+.support-page { max-width: 1100px; margin: 0 auto; padding-bottom: 80px; }
+.support-new { max-width: 720px; margin: 0 auto 40px; }
+.ticket-list { margin-top: 36px; }
+.ticket { margin: 20px 0; text-align: left; }
+.ticket-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+.ticket-head h2 { margin-top: 4px; }
+.thread { display: flex; flex-direction: column; gap: 12px; margin: 22px 0; }
+.message { max-width: 82%; padding: 14px 16px; border-radius: 16px; background: #0f162b; border: 1px solid var(--line); }
+.message.support { align-self: flex-end; background: #12334a; border-color: #246986; }
+.message p { white-space: pre-wrap; margin: 8px 0; line-height: 1.5; }
+.message small { color: var(--muted); }
+.reply-form { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; }
+.reply-form button { width: auto; min-width: 130px; }
+.status-form { display: flex; gap: 8px; margin-top: 12px; }
 @media (max-width: 900px) {
   .plans, .package-admin-grid { grid-template-columns: 1fr; }
   header, main { padding-left: 20px; padding-right: 20px; }
@@ -304,4 +322,7 @@ button.ghost:hover { background: #1d232c; }
   .toggles { display: none; }
   .account-hero { align-items: flex-start; flex-direction: column; }
   .balance { text-align: left; }
+  .reply-form { grid-template-columns: 1fr; }
+  .reply-form button { width: 100%; }
+  .message { max-width: 95%; }
 }
