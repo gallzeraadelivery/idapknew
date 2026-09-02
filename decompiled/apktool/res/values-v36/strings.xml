@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cleanup_clear_drm">DRM reset unavailable on Android 16</string>
+    <string name="cleanup_clear_google_id">Google ID reset unavailable on Android 16</string>
+</resources>
