@@ -294,12 +294,6 @@
     .line 66
     if-eqz v4, :cond_2
 
-    sget v4, Landroid/os/Build$VERSION;->SDK_INT:I
-
-    const/16 v6, 0x24
-
-    if-ge v4, v6, :cond_2
-
     .line 67
     .line 68
     sget-object v4, Lcom/byedentity/NativeBridge;->INSTANCE:Lcom/byedentity/NativeBridge;
@@ -369,12 +363,6 @@
 
     .line 101
     if-eqz v4, :cond_3
-
-    sget v4, Landroid/os/Build$VERSION;->SDK_INT:I
-
-    const/16 v8, 0x24
-
-    if-ge v4, v8, :cond_3
 
     .line 102
     .line 103
